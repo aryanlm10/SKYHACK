@@ -1,0 +1,30 @@
+
+
+
+ALTER TABLE customercomments
+ADD COLUMN satisfaction_type VARCHAR(50);
+
+UPDATE customercomments
+SET satisfaction_type = iss.satisfaction_type
+FROM iss
+WHERE iss.flight_number= customercomments.flight_number
+and iss.origin_station_code=customercomments.origin_station_code
+and iss.destination_station_code=customercomments.destination_station_code
+and iss.scheduled_departure_date=customercomments.scheduled_departure_date
+
+
+
+
+ALTER TABLE customercomments
+ADD COLUMN score VARCHAR(50);
+
+UPDATE customercomments
+SET score = iss.score
+FROM iss
+WHERE iss.flight_number= customercomments.flight_number
+and iss.origin_station_code=customercomments.origin_station_code
+and iss.destination_station_code=customercomments.destination_station_code
+and iss.scheduled_departure_date=customercomments.scheduled_departure_date
+
+
+
