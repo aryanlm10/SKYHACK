@@ -1,0 +1,50 @@
+#Code for analysis of customer comments
+import pandas as pd
+import numpy as np
+import re
+import nltk
+from nltk.corpus import stopwords
+from textblob import TextBlob
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+# Load NLTK resources
+nltk.download('punkt')
+nltk.download('stopwords')
+
+# Load stopwords and initialize the vectorizer
+stop_words = set(stopwords.words('english'))
+vectorizer = TfidfVectorizer(max_features=1000, ngram_range=(1, 2))
+
+# Read the CSV file
+df = pd.read_csv('/Users/aryantanwar/Downloads/dc - dc.csv.csv')
+
+# Define the text preprocessing functions
+def clean_text(text):
+    text = re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    text = text.lower()  # Convert to lower case
+    return text
+
+def tokenize_and_remove_stop_words(text):
+    tokens = nltk.word_tokenize(text)
+    tokens = [token for token in tokens if token not in stop_words]
+    return ' '.join(tokens)  # Return tokens as a cleaned sentence
+
+# Apply text preprocessing
+df['clean_text'] = df['verbatim_text'].apply(lambda x: clean_text(x))
+df['clean_text_no_stopwords'] = df['clean_text'].apply(lambda x: tokenize_and_remove_stop_words(x))
+
+# Perform sentiment analysis
+def get_sentiment(text):
+    return TextBlob(text).sentiment.polarity
+
+df['sentiment'] = df['clean_text'].apply(lambda x: get_sentiment(x))
+
+# Perform TF-IDF vectorization
+X = vectorizer.fit_transform(df['clean_text_no_stopwords'])
+feature_names = vectorizer.get_feature_names_out()
+dense = X.todense()
+df_tfidf = pd.DataFrame(dense, columns=feature_names)
+
+# Plot word counts
+word_counts = pd.Series(' '.join(df['clean_text_no_stopwords']).split()).value_counts()[1:30]
+word_counts.plot(kind='bar')
